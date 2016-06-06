@@ -1,15 +1,11 @@
+# Reproducible Research: Peer Assessment 1
 
----
-title: "Reproducible Research: Peer Assessment 1"
-output: 
-  html_document:
-    keep_md: true
----
 
 
 ## Loading and preprocessing the data
 
-```{r activityData, echo=TRUE,eval=TRUE}
+
+```r
 unzip("activity.zip")
 activityData <- read.csv("activity.csv")
 activityData$date <- as.Date(activityData$date,"%Y-%m-%d")
@@ -18,53 +14,95 @@ naRemovedActivityData <- activityData[!is.na(activityData$steps),]
 
 ## What is mean total number of steps taken per day?
 
-```{r plotSumStepDays, echo=TRUE,eval=TRUE}
+
+```r
 sumsOfDays <- aggregate(naRemovedActivityData[,1],by=list(naRemovedActivityData$date),FUN=sum)
 x<-barplot(sumsOfDays$x,xlab="date",ylab= "sum of number of steps")
 text(cex=.45, x=x+1, y=+1, sumsOfDays$Group.1, xpd=TRUE, srt=45, pos=2)
-
 ```
+
+![](PA1_template_files/figure-html/plotSumStepDays-1.png)<!-- -->
 
 Mean of the sum of the steps taken each day is: 
-```{r meanSumStepDays, echo=TRUE,eval=TRUE}
+
+```r
 mean(sumsOfDays$x)
 ```
+
+```
+## [1] 10766.19
+```
 Median of the sum of the steps taken each day is: 
-```{r medianSumStepDays, echo=TRUE,eval=TRUE}
+
+```r
 median(sumsOfDays$x)
+```
+
+```
+## [1] 10765
 ```
 ## What is the average daily activity pattern?
 
-```{r plotMeanStepIntervals, echo=TRUE,eval=TRUE}
+
+```r
 meanOfIntervals <- aggregate(naRemovedActivityData[,1],by=list(naRemovedActivityData$interval),FUN=mean)
 xOfMax <- meanOfIntervals[meanOfIntervals$x==max(meanOfIntervals$x),1]
 with(meanOfIntervals,plot(Group.1,x,type="l",xlab="interval ID",ylab= "mean of number of steps"))
 points(xOfMax,max(meanOfIntervals$x),col="red")
 text(xOfMax+350,max(meanOfIntervals$x),col="red",labels=c(paste0("interval ID = ", xOfMax)))
+```
+
+![](PA1_template_files/figure-html/plotMeanStepIntervals-1.png)<!-- -->
+The maximum number of steps taken on average across all days is the interval with the ID:
+
+```r
+meanOfIntervals[meanOfIntervals$x==max(meanOfIntervals$x),1]
+```
 
 ```
-The maximum number of steps taken on average across all days is the interval with the ID:
-```{r maxMeanStepIntervals, echo=TRUE,eval=TRUE}
-meanOfIntervals[meanOfIntervals$x==max(meanOfIntervals$x),1]
+## [1] 835
 ```
 
 ## Imputing missing values
 
 Number of null values in the data is:
-```{r numberOfNAs, echo=TRUE,eval=TRUE}
+
+```r
 sum(is.na(activityData$steps))
 ```
+
+```
+## [1] 2304
+```
 And null values only appear in the steps column. Number of null values in the other two columns:
-```{r numberOfNAsInOther, echo=TRUE,eval=TRUE}
+
+```r
 sum(is.na(activityData$date))
+```
+
+```
+## [1] 0
+```
+
+```r
 sum(is.na(activityData$interval))
 ```
+
+```
+## [1] 0
+```
 If a null value appears in a day, steps column of all the rows for that day is also null:
-```{r NAanalysis, echo=TRUE,eval=TRUE}
+
+```r
 sum(is.na(activityData[activityData$date %in% activityData$date[is.na(activityData$steps)],]$steps))==sum(is.na(activityData$steps))
 ```
+
+```
+## [1] TRUE
+```
 Therefor I imput the null values using the means of the corresponding interval:
-```{r imputingMissing, echo=TRUE,eval=TRUE}
+
+```r
 for (myDate in unique(activityData$date[is.na(activityData$steps)])) {
 activityData$steps[is.na(activityData$steps)] <- meanOfIntervals$x[meanOfIntervals$Group.1==activityData$interval[is.na(activityData$steps)]]
 }
@@ -72,30 +110,51 @@ activityData$steps[is.na(activityData$steps)] <- meanOfIntervals$x[meanOfInterva
 
 Histogram of total number of steps taken per day after imputing missing values:
 
-```{r plotSumStepDays2, echo=TRUE,eval=TRUE}
+
+```r
 sumsOfDays2 <- aggregate(activityData[,1],by=list(activityData$date),FUN=sum)
 x<-barplot(sumsOfDays2$x,xlab="date",ylab= "sum of number of steps")
 text(cex=.45, x=x+1, y=+1, sumsOfDays2$Group.1, xpd=TRUE, srt=45, pos=2)
-
 ```
+
+![](PA1_template_files/figure-html/plotSumStepDays2-1.png)<!-- -->
 
 Mean of the sum of the steps taken each day after imputing missing values is: 
-```{r meanSumStepDays2, echo=TRUE,eval=TRUE}
+
+```r
 mean(sumsOfDays2$x)
 ```
+
+```
+## [1] 10766.19
+```
 Median of the sum of the steps taken each day after imputing missing values is: 
-```{r medianSumStepDays2, echo=TRUE,eval=TRUE}
+
+```r
 median(sumsOfDays2$x)
 ```
 
+```
+## [1] 10766.19
+```
+
 ## Are there differences in activity patterns between weekdays and weekends?
-```{r plotgWeekendSeparate, echo=TRUE,eval=TRUE}
+
+```r
 Sys.setlocale("LC_ALL","English")
+```
+
+```
+## [1] "LC_COLLATE=English_United States.1252;LC_CTYPE=English_United States.1252;LC_MONETARY=English_United States.1252;LC_NUMERIC=C;LC_TIME=English_United States.1252"
+```
+
+```r
 activityDataWeekday <- cbind(activityData,isWeekday=ifelse(weekdays(activityData$date)%in%c("Saturday","Sunday"),"weekend","weekday"))
 
 meanOfIntervalsWeekday <- aggregate(activityDataWeekday[,1],by=list(activityDataWeekday$interval,activityDataWeekday$isWeekday),FUN=mean)
 names(meanOfIntervalsWeekday) <- c("interval","isWeekday","meanOfInterval")
 library(lattice)
 xyplot(meanOfInterval~interval|isWeekday,meanOfIntervalsWeekday,type='l',xlab = "interval ID",ylab = "average number of steps",layout=c(1,2))
-
 ```
+
+![](PA1_template_files/figure-html/plotgWeekendSeparate-1.png)<!-- -->
